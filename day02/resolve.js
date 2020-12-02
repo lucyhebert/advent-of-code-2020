@@ -5,10 +5,11 @@ solveDay5('day02/input.txt')
 function solveDay5(filePath) {
 
 	const lines = fs.readFileSync(filePath,'utf8').split('\n')
-	console.log(countValidPasswords(lines))
+	console.log(countValidPasswords(lines, 1))
+	console.log(countValidPasswords(lines, 2))
 }
 
-function countValidPasswords(lines) {
+function countValidPasswords(lines, policy) {
 	const linesLength = lines.length
 
 	let line
@@ -27,8 +28,14 @@ function countValidPasswords(lines) {
 			continue
 		}
 
-		if(isValidPassword(lineInfo.password, lineInfo.letter, lineInfo.min, lineInfo.max)) {
-			count++
+		if(policy === 2) {
+			if(isValidPasswordPart2(lineInfo.password, lineInfo.letter, lineInfo.min, lineInfo.max)) {
+				count++
+			}
+		} else {
+			if(isValidPasswordPart1(lineInfo.password, lineInfo.letter, lineInfo.min, lineInfo.max)) {
+				count++
+			}
 		}
 
 		i++
@@ -50,10 +57,20 @@ function getLineInfo(line) {
 	return { min: min, max: max, letter: letter, password: password }
 }
 
-function isValidPassword(password, letter, min, max) {
+function isValidPasswordPart1(password, letter, min, max) {
 	let letterRegexp = new RegExp(letter, 'g')
 
 	const letterMatchesLength = password.match(letterRegexp).length
 
 	return letterMatchesLength >= min && letterMatchesLength <= max
+}
+
+function isValidPasswordPart2(password, letter, min, max) {
+	// let letterRegexp = new RegExp(letter, 'g')
+
+	return password[min - 1] === letter && password[max - 1] !== letter || password[min - 1] !== letter && password[max - 1] === letter
+
+	// const letterMatchesLength = password.match(letterRegexp).length
+	//
+	// return letterMatchesLength >= min && letterMatchesLength <= max
 }
