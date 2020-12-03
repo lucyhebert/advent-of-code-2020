@@ -66,11 +66,5 @@ function isValidPasswordPart1(password, letter, min, max) {
 }
 
 function isValidPasswordPart2(password, letter, min, max) {
-	// let letterRegexp = new RegExp(letter, 'g')
-
 	return password[min - 1] === letter && password[max - 1] !== letter || password[min - 1] !== letter && password[max - 1] === letter
-
-	// const letterMatchesLength = password.match(letterRegexp).length
-	//
-	// return letterMatchesLength >= min && letterMatchesLength <= max
 }
