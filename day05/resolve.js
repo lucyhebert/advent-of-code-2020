@@ -7,6 +7,7 @@ function solveDay5(filePath) {
 	const seats = fs.readFileSync(filePath,'utf8').split('\n')
 
 	console.log(findHighestSeatID(seats))
+	console.log(findMissingSeatNumber(seats))
 }
 
 function findHighestSeatID(seats) {
@@ -30,66 +31,90 @@ function findHighestSeatID(seats) {
 	return maxSeatId
 }
 
+function findMissingSeatNumber(seats) {
+	const seatsIds = getAllSeatsIds(seats)
+
+	let missingSeatNumbers = 0
+	let i = 0
+
+	while(i < seatsIds.length - 1) {
+		if(seatsIds[i + 1] !== seatsIds[i] + 1) {
+			missingSeatNumbers = seatsIds[i] + 1
+			break
+		}
+
+		i++
+	}
+
+	return missingSeatNumbers
+}
+
+function getAllSeatsIds(seats) {
+
+	const seatsLength = seats.length
+
+	let seatsIds = []
+
+	let i = 0
+
+	while (i < seatsLength) {
+		let seat = seats[i]
+		let seatId = getSeatId(seat)
+
+		seatsIds.push(seatId)
+
+		i++
+	}
+
+	return seatsIds.sort((a, b) => a - b)
+}
+
 function getSeatId(seat) {
 	const rowCoordinates = seat.substr(0, 7)
 	const columnCoordinates = seat.substr(7)
 
-	let rowNumber = getRowNumber(rowCoordinates)
-	let columnNumber = getColumnNumber(columnCoordinates)
+	let rowNumber = getNumberFromCoordinates(rowCoordinates, 'row')
+	let columnNumber = getNumberFromCoordinates(columnCoordinates, 'column')
 
 	return calculateSeatId(rowNumber, columnNumber)
 }
 
-function getRowNumber(rowCoordinates) {
-	let minRow = 0
-	let maxRow = 127
-	let rowNumber = 0
+function getNumberFromCoordinates(coordinates, type) {
+	let min = 0
+	let max = 0
+	let lowCoordinate
+	let highCoordinate
+	let number = 0
+
+	if(type === 'row') {
+		max = 127
+		lowCoordinate = 'F'
+		highCoordinate = 'B'
+	} else if(type === 'column') {
+		max = 7
+		lowCoordinate = 'L'
+		highCoordinate = 'R'
+	}
 
 	let i = 0
 
-	while(i < rowCoordinates.length) {
-		let rowCoordinate = rowCoordinates[i]
+	while(i < coordinates.length) {
+		let coordinate = coordinates[i]
 
-		if(rowCoordinate === 'F') {
-			maxRow = Math.floor(minRow + ((maxRow - minRow) / 2))
-		} else if(rowCoordinate === 'B') {
-			minRow = Math.ceil(minRow + ((maxRow - minRow) / 2))
+		if(coordinate === lowCoordinate) {
+			max = Math.floor(min + ((max - min) / 2))
+		} else if(coordinate === highCoordinate) {
+			min = Math.ceil(min + ((max - min) / 2))
 		}
 
 		i++
 	}
 
-	if(minRow === maxRow) {
-		rowNumber = minRow
+	if(min === max) {
+		number = min
 	}
 
-	return rowNumber
-}
-
-function getColumnNumber(columnCoordinates) {
-	i = 0
-
-	let minColumn = 0
-	let maxColumn = 7
-	let columnNumber = 0
-
-	while(i <= columnCoordinates.length) {
-		let columnCoordinate = columnCoordinates[i]
-
-		if(columnCoordinate === 'L') {
-			maxColumn = Math.floor(minColumn + ((maxColumn - minColumn) / 2))
-		} else if(columnCoordinate === 'R') {
-			minColumn = Math.ceil(minColumn + ((maxColumn - minColumn) / 2))
-		}
-
-		i++
-	}
-
-	if(minColumn === maxColumn) {
-		columnNumber = minColumn
-	}
-
-	return columnNumber
+	return number
 }
 
 function calculateSeatId(rowNumber, columnNumber) {
