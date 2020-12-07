@@ -1,6 +1,7 @@
 const fs = require('fs')
 
 let validBags = new Set()
+let requiredBagsInsideBag = 0
 
 solveDay7('day07/input.txt')
 
@@ -13,6 +14,7 @@ function solveDay7(filePath) {
 	const searchedColor = 'shiny gold'
 
 	console.log(countBagsColorsContainingBagColor(formattedRules, searchedColor))
+	console.log(countRequiredBagsInsideBag(formattedRules, searchedColor))
 }
 
 function getFormattedRules(rules) {
@@ -51,13 +53,11 @@ function countBagsColorsContainingBagColor(rules, color) {
 	let i = 0
 
 	while (i < rulesLength) {
-
 		findValidBags(rules, rules[i], rules[i], color)
-
 		i++
 	}
 
-	return [validBags.size]
+	return validBags.size
 }
 
 function findValidBags(rules, currentBag, topLevelParent, color) {
@@ -79,4 +79,36 @@ function findValidBags(rules, currentBag, topLevelParent, color) {
 		findValidBags(rules, innerBags[i], topLevelParent, color)
 		i++
 	}
+}
+
+function countRequiredBagsInsideBag(rules, color) {
+
+	const rulesLength = rules.length
+	const bag = findBag(rules, color)
+
+	return findRequiredBagsInsideBag(rules, bag)
+}
+
+function findBag(rules, color) {
+	return rules.find(el => el.bagColor === color)
+}
+
+function findRequiredBagsInsideBag(rules, currentBag) {
+	const bag = findBag(rules, currentBag.bagColor)
+	const innerBags = bag.innerBags
+
+	if(!bag || !innerBags) {
+		return
+	}
+
+	let result = 0
+
+	let i = 0
+	while(i < innerBags.length) {
+
+		result += innerBags[i].quantity * (1 + findRequiredBagsInsideBag(rules, innerBags[i]))
+
+		i++
+	}
+	return result
 }
