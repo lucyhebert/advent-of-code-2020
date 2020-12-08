@@ -4,9 +4,11 @@ solveDay8('day08/input.txt')
 
 function solveDay8(filePath) {
 	const instructions = fs.readFileSync(filePath,'utf8').split('\n')
-	const formattedInstructions = getFormattedInstructions(instructions)
+	let formattedInstructions = getFormattedInstructions(instructions)
 
-	console.log(getAccumulatorValue(formattedInstructions))
+	console.log(getAccumulatorValue(formattedInstructions)[0])
+
+	console.log(findWrongInstruction(instructions))
 }
 
 function getFormattedInstructions(instructions) {
@@ -17,8 +19,7 @@ function getFormattedInstructions(instructions) {
 
 		const formattedInstruction = {
 			operation: instructionGroups.operation,
-			argument: parseInt(instructionGroups.argument),
-			alreadyExecuted: false
+			argument: parseInt(instructionGroups.argument)
 		}
 
 		instructionAccumulator.push(formattedInstruction)
@@ -28,16 +29,16 @@ function getFormattedInstructions(instructions) {
 
 function getAccumulatorValue(instructions) {
 	let accumulator = 0
+	let alreadyExecuted = []
 
 	let i = 0
 	while(i < instructions.length) {
 		let instruction = instructions[i]
-		let alreadyExecuted = instruction.alreadyExecuted
 
-		if(alreadyExecuted) {
+		if(alreadyExecuted.includes(i)) {
 			break
 		} else {
-			instruction.alreadyExecuted = true
+			alreadyExecuted.push(i)
 		}
 
 		let operation = instruction.operation
@@ -51,6 +52,36 @@ function getAccumulatorValue(instructions) {
 		} else if(operation === 'nop') {
 			i++
 		}
+	}
+
+	return [accumulator, i]
+}
+
+function findWrongInstruction(instructions) {
+	let accumulator = 0
+	let updatedInstructions = getFormattedInstructions(instructions)
+
+	let i = 0
+	while(i < instructions.length) {
+		let instruction = updatedInstructions[i]
+		let originalOperation = instruction.operation
+
+		if(originalOperation === 'nop' || originalOperation === 'jmp') {
+			if(originalOperation === 'nop') {
+				instruction.operation = 'jmp'
+			} else if(originalOperation === 'jmp') {
+				instruction.operation = 'nop'
+			}
+
+			let testUpdate = getAccumulatorValue(updatedInstructions)
+			if(testUpdate[1] ===  instructions.length) {
+				accumulator = testUpdate[0]
+				break
+			} else {
+				instruction.operation = originalOperation
+			}
+		}
+		i++
 	}
 
 	return accumulator
