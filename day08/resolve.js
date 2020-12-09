@@ -8,7 +8,7 @@ function solveDay8(filePath) {
 
 	console.log(getAccumulatorValue(formattedInstructions)[0])
 
-	console.log(findWrongInstruction(instructions))
+	console.log(getAccumulatorReplacingWrongInstruction(instructions))
 }
 
 function getFormattedInstructions(instructions) {
@@ -57,7 +57,7 @@ function getAccumulatorValue(instructions) {
 	return [accumulator, i]
 }
 
-function findWrongInstruction(instructions) {
+function getAccumulatorReplacingWrongInstruction(instructions) {
 	let accumulator = 0
 	let updatedInstructions = getFormattedInstructions(instructions)
 
@@ -74,6 +74,7 @@ function findWrongInstruction(instructions) {
 			}
 
 			let testUpdate = getAccumulatorValue(updatedInstructions)
+
 			if(testUpdate[1] ===  instructions.length) {
 				accumulator = testUpdate[0]
 				break
