@@ -3,11 +3,50 @@ const fs = require('fs')
 solveDay9('day09/input.txt')
 
 function solveDay9(filePath) {
-	const numbers = fs.readFileSync(filePath,'utf8').split('\n')
-	console.log(findWrongNumber(numbers, 25))
+	const numbersList = fs.readFileSync(filePath,'utf8').split('\n')
+	console.log(findEncryptionWeakness(numbersList, 25))
 }
 
-function findWrongNumber(numbers, preambleLength) {
+function findEncryptionWeakness(numbersList, preambleLength) {
+	let result = {
+		referenceNumber: findReferenceNumber(numbersList, preambleLength),
+		encryptionWeakness: null
+	}
+
+	let testedNumbers = []
+
+	let i = 1
+	while(i < numbersList.length) {
+		let firstTestedNumber = parseInt(numbersList[i - 1])
+
+		testedNumbers.push(firstTestedNumber)
+
+		let testedNumbersSum = firstTestedNumber
+
+		let j = i
+		while(testedNumbersSum < result.referenceNumber && j < numbersList.length) {
+			let testedNumber = parseInt(numbersList[j])
+
+			testedNumbersSum += testedNumber
+			testedNumbers.push(testedNumber)
+			j++
+		}
+
+		if(testedNumbersSum == result.referenceNumber) {
+			break
+		} else {
+			testedNumbers = []
+		}
+
+		i++
+	}
+
+	result.encryptionWeakness = Math.min(...testedNumbers) + Math.max(...testedNumbers)
+
+	return result
+}
+
+function findReferenceNumber(numbers, preambleLength) {
 	let result = false
 
 	let j = preambleLength + 1
