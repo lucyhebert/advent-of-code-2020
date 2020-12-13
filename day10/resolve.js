@@ -3,17 +3,18 @@ const fs = require('fs')
 solveDay10('day10/input.txt')
 
 function solveDay10(filePath) {
-	const joltageRatings = fs.readFileSync(filePath,'utf8').split('\n')
+	const adaptersList = fs.readFileSync(filePath,'utf8').split('\n')
 	const effectiveJoltage = 0
 
-	joltageRatings.push(effectiveJoltage)
+	adaptersList.push(effectiveJoltage)
 
-	const sortedJoltage = joltageRatings.reduce((accumulator, joltage) => {
+	const sortedAdapters = adaptersList.reduce((accumulator, joltage) => {
 		accumulator.push(parseInt(joltage))
 		return accumulator
 	}, []).sort((a, b) => a - b)
 
- 	console.log(findDifferencesResult(sortedJoltage))
+	console.log(findDifferencesResult(sortedAdapters))
+	console.log(countPossibleCombinations(sortedAdapters))
 }
 
 function findDifferencesResult(sortedJoltage) {
@@ -32,4 +33,29 @@ function findDifferencesResult(sortedJoltage) {
 	}
 
 	return oneDifferences * threeDifferences
+}
+
+function countPossibleCombinations(sortedAdapters, testedSubCombinations={}) {
+
+    const sortedAdaptersStringKey = sortedAdapters.join`,`
+
+    if(sortedAdaptersStringKey in testedSubCombinations) {
+        return testedSubCombinations[sortedAdaptersStringKey]
+    }
+
+    let totalPossibleCombinationsCounter = 1
+
+    for(let i = 1; i < sortedAdapters.length - 1; i++) {
+        let previousAdapter = sortedAdapters[i - 1]
+        let nextAdapter = sortedAdapters[i + 1]
+
+        if(nextAdapter - previousAdapter <= 3) {
+            const possibleCombination = [previousAdapter].concat(sortedAdapters.slice(i + 1))
+            totalPossibleCombinationsCounter += countPossibleCombinations(possibleCombination, testedSubCombinations)
+        }
+    }
+
+    testedSubCombinations[sortedAdaptersStringKey] = totalPossibleCombinationsCounter;
+
+    return totalPossibleCombinationsCounter;
 }
