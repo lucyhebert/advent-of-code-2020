@@ -11,6 +11,8 @@ const instructions = fs.readFileSync(filePath,'utf8').split('\n').reduce((acc, i
 	return acc
 }, [])
 
+const directions = ['N', 'E', 'S', 'W']
+
 solveDay12()
 
 function solveDay12() {
@@ -19,7 +21,11 @@ function solveDay12() {
 
 function getManhattanDistance(instructions) {
 	const finalPosition = findFinalPosition(instructions)
-	return Math.abs(finalPosition.x) + Math.abs(finalPosition.y)
+	const finalPositionWithWaypoint = findFinalPositionWithWaypoint(instructions)
+	return [
+		Math.abs(finalPosition.x) + Math.abs(finalPosition.y),
+		Math.abs(finalPositionWithWaypoint.x) + Math.abs(finalPositionWithWaypoint.y)
+	]
 }
 
 function findFinalPosition(instructions) {
@@ -82,4 +88,87 @@ function findFinalPosition(instructions) {
 	}
 
 	return position
+}
+
+function findFinalPositionWithWaypoint(instructions) {
+	let shipPosition = {
+		x: 0,
+		y: 0
+	}
+
+	let waypointPosition = {
+		x: 10,
+		y: -1
+	}
+
+	let currentDirectionIndex = 1
+
+	function moveWaypoint(direction, step) {
+		switch(direction) {
+			case 'N':
+				waypointPosition.y -= step
+				break
+			case 'S':
+				waypointPosition.y += step
+				break
+			case 'E':
+				waypointPosition.x += step
+				break
+			case 'W':
+				waypointPosition.x -= step
+				break
+		}
+	}
+
+	function rotateWaypoint(direction, degrees) {
+		const step = degrees / 90
+
+		if(step === 4) {
+			return
+		}
+
+		for(let i = 1; i <= step; i++) {
+			const initialXPosition = waypointPosition.x
+			const initialYPosition = waypointPosition.y
+
+			if(direction === 'L') {
+				waypointPosition.x = initialYPosition
+				waypointPosition.y = initialXPosition * -1
+			}
+
+			if(direction === 'R') {
+				waypointPosition.x = initialYPosition * -1
+				waypointPosition.y = initialXPosition
+			}
+		}
+	}
+
+	function moveForward(step) {
+		shipPosition.x += step * waypointPosition.x
+		shipPosition.y += step * waypointPosition.y
+	}
+
+	for(let i = 0; i < instructions.length; i++) {
+		let instruction = instructions[i]
+		let action = instruction.action
+		let step = parseInt(instruction.step)
+
+		switch(action) {
+			case 'N':
+			case 'S':
+			case 'E':
+			case 'W':
+				moveWaypoint(action, step)
+				break
+			case 'L':
+			case 'R':
+				rotateWaypoint(action, step)
+				break
+			case 'F':
+				moveForward(step)
+				break
+		}
+	}
+
+	return shipPosition
 }
