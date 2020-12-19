@@ -1,13 +1,14 @@
 const fs = require('fs')
+const _ = require('lodash');
 
 const filePath = 'day14/input.txt'
 const blocks = fs.readFileSync(filePath,'utf8').split('mask = ').filter((x) => x !== '')
 const parameterRegex= /mem\[(?<memoryLocation>\d+)\] = (?<param>\d+)/
-
 const program = blocks.reduce((acc, block) => {
+	let blockArray = block.split('\n')
 	acc.push({
-		mask: block.slice(0),
-		parameters: parseParameters(block)
+		mask: blockArray[0],
+		parameters: parseParameters(blockArray)
 	})
 	return acc
 }, [])
@@ -15,11 +16,12 @@ const program = blocks.reduce((acc, block) => {
 solveDay14()
 
 function parseParameters(block) {
-	return block.split('\n').slice(1).filter((x) => x !== '').reduce((acc, param) => {
+	return block.slice(1).filter((x) => x !== '').reduce((acc, param) => {
 		let parameterGroups = param.match(parameterRegex).groups
 
 		acc.push({
 			memoryLocation: parameterGroups.memoryLocation,
+			binaryMemoryLocation: numberToBits36(parseInt(parameterGroups.memoryLocation)),
 			param: parameterGroups.param,
 			binaryParam: numberToBits36(parseInt(parameterGroups.param))
 		})
@@ -33,7 +35,8 @@ function solveDay14() {
 }
 
 function sumMemoryValues() {
-	let memory = []
+	let memoryV1 = {}
+	let memoryV2 = {}
 
 	for(let i = 0; i < program.length; i++) {
 		let block = program[i]
@@ -42,48 +45,43 @@ function sumMemoryValues() {
 
 		for(let j = 0; j < parameters.length; j++) {
 			let parameter = parameters[j]
-			memory[parameter.memoryLocation] = applyMask(mask, parameter.binaryParam)
+
+			memoryV1[parameter.memoryLocation] = applyMaskOnValue(mask, parameter.binaryParam)
+
+			let maskedLocation = applyMaskOnMemomyLocation(mask, parameter.binaryMemoryLocation)
+			let newMemoryLocations = applyFloatOnMemoryLocation(mask, [maskedLocation])
+
+			for(let k = 0; k < newMemoryLocations.length; k++) {
+				memoryV2[bits36ToNumber(newMemoryLocations[k])] = parameter.param
+			}
 		}
 	}
 
-	return memory.reduce((acc, value) => {
-		acc += parseInt(bits36ToNumber(value))
-		return acc
-	}, 0)
+	return [
+		Object.values(memoryV1).reduce((acc, value) => {
+			acc += parseInt(bits36ToNumber(value))
+			return acc
+		}, 0),
+		Object.values(memoryV2).reduce((acc, value) => {
+			acc += parseInt(value)
+			return acc
+		}, 0)
+	] // => [ 2346881602152, 3885232834169 ]
 }
 
 function numberToBits36(number) {
-	const bits = [...baseConvert(number, 10, 2)]
-
-	let result = bits
-
-	while(result.length < 36) {
-		result.splice(0, 0, '0')
-	}
-
-	return result.join('')
+	return baseConvert(number, 10, 2).padStart(36, '0')
 }
 
 function bits36ToNumber(bits) {
-	let shortenedBits = [...bits]
-
-	for(let i = 0; i < 36; i++) {
-		if(bits[i] === '1') {
-			break
-		}
-		if(bits[i] === '0') {
-			shortenedBits.splice(0, 1)
-		}
-	}
-
-	return baseConvert(shortenedBits.join(''), 2, 10)
+	return baseConvert([...bits].join(''), 2, 10)
 }
 
 function baseConvert(number, from, to) {
 	return parseInt(number + ' ', from).toString(to)
 }
 
-function applyMask(mask, parameter) {
+function applyMaskOnValue(mask, parameter) {
 	let result = [...parameter]
 
 	for(let i = 0; i < mask.length; i++) {
@@ -93,4 +91,38 @@ function applyMask(mask, parameter) {
 	}
 
 	return result.join('')
+}
+
+function applyMaskOnMemomyLocation(mask, location) {
+	let result = [...location].slice(0)
+
+	for(let j = 0; j < mask.length; j++) {
+		let currentMask = mask[j]
+
+		if(currentMask === '1' || currentMask === 'X' ) {
+			result[j] = currentMask
+		}
+	}
+
+	return result
+}
+
+function applyFloatOnMemoryLocation(mask, maskedLocations) {
+	let result = []
+
+	for(let i = 0; i < maskedLocations.length; i++) {
+		let maskedLocation = maskedLocations[i]
+		let floatIndex = maskedLocation.indexOf('X')
+
+		if(floatIndex === -1) {
+			return maskedLocations
+		}
+
+		let a = maskedLocation.slice(0, floatIndex).concat('0', maskedLocation.slice(floatIndex + 1))
+		let b = maskedLocation.slice(0, floatIndex).concat('1', maskedLocation.slice(floatIndex + 1))
+
+		result.push(a, b);
+	}
+
+	return applyFloatOnMemoryLocation(mask, result)
 }

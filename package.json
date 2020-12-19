@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/lucyhebert/advent-of-code-2020#readme",
   "dependencies": {
-    "bigint-mod-arith": "^2.0.8"
+    "bigint-mod-arith": "^2.0.8",
+    "lodash": "^4.17.20"
   }
 }
