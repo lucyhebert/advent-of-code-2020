@@ -7,10 +7,11 @@ const startingNumbers = fs.readFileSync(filePath,'utf8').split(',')
 solveDay15()
 
 function solveDay15() {
-	console.log(getFinalNumber(2020))
+	console.log(getFinalSpokenNumber(2020))
+	console.log(getFinalSpokenNumber(30000000))
 }
 
-function getFinalNumber(index) {
+function getFinalSpokenNumber(index) {
 
 	let startingNumbersLength = startingNumbers.length
 	let memo = _.cloneDeep(startingNumbers).reduce((acc, number, index) => {
@@ -18,11 +19,10 @@ function getFinalNumber(index) {
 		return acc
 	}, {})
 
-	let spokenNumbers = _.cloneDeep(startingNumbers)
+	let lastSpokenNumber = startingNumbers[startingNumbers.length - 1]
 
 	for(let i = startingNumbersLength; i < index; i++) {
-		let previousNumber = spokenNumbers[i - 1]
-		let previousMemoEntry = memo[previousNumber]
+		let previousMemoEntry = memo[lastSpokenNumber]
 		let previousMemoEntryLength = previousMemoEntry.length
 		let currentNumber
 
@@ -32,16 +32,19 @@ function getFinalNumber(index) {
 			currentNumber = previousMemoEntry[previousMemoEntryLength - 1] - previousMemoEntry[previousMemoEntryLength - 2]
 		}
 
-		spokenNumbers.push(currentNumber)
+		lastSpokenNumber = currentNumber
 
 		let newMemoEntry = memo[currentNumber]
 
 		if(newMemoEntry) {
 			newMemoEntry.push(i + 1)
+			if(newMemoEntry.length > 2) {
+				newMemoEntry.slice(0, 1)
+			}
 		} else {
 			memo[currentNumber] = [i + 1]
 		}
 	}
 
-	return spokenNumbers[spokenNumbers.length - 1]
+	return lastSpokenNumber
 }
